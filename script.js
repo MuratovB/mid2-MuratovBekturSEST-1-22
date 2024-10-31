@@ -3,15 +3,12 @@ const addBtn = document.getElementById('addBtn');
 const clearBtn = document.getElementById('clearBtn');
 const taskList = document.getElementById('taskList');
 const emptyTaskListText = document.getElementById('emptyTaskListText');
-const tasks = [];
+let tasks = [];
 
 function loadTasks() {
-    let i = 0;
-    while (localStorage.getItem(`task${i}`) !== null) {
-        tasks.push(localStorage.getItem(`task${i}`));
-        i++;
-    }
-    tasks.forEach(taskText => addTaskToDOM(taskText));
+    const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    tasks = savedTasks;
+    tasks.forEach(task => addTaskToDOM(task.text, task.completed));
 }
 
 function addTaskToDOM(taskText, completed = false) {
@@ -30,12 +27,16 @@ function addTaskToDOM(taskText, completed = false) {
 
     li.querySelector('.complete-btn').addEventListener('click', () => {
         li.classList.toggle('completed');
+        const taskIndex = Array.from(taskList.children).indexOf(li);
+        tasks[taskIndex].completed = !tasks[taskIndex].completed;
+        updateLocalStorage();
     });
 
     li.querySelector('.delete-btn').addEventListener('click', () => {
         const taskIndex = Array.from(taskList.children).indexOf(li);
         li.remove();
-        removeFromLocalStorage(taskIndex);
+        tasks.splice(taskIndex, 1);
+        updateLocalStorage();
         if (!Array.from(taskList.children).length) {
             emptyTaskListText.style.display = 'block';
         };
@@ -44,34 +45,25 @@ function addTaskToDOM(taskText, completed = false) {
     emptyTaskListText.style.display = taskList.children.length ? 'none' : 'block';
 }
 
-function removeFromLocalStorage(index) {
-    localStorage.removeItem(`task${index}`);
-    
-    let i = index + 1;
-    while (localStorage.getItem(`task${i}`) !== null) {
-        localStorage.setItem(`task${i - 1}`, localStorage.getItem(`task${i}`));
-        localStorage.removeItem(`task${i}`);
-        i++;
-    }
+function updateLocalStorage() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
 addBtn.addEventListener('click', () => {
     const taskText = userInput.value.trim();
     if (taskText) {
-        const index = Array.from(taskList.children).length;
-        localStorage.setItem(`task${index}`, taskText);
-        console.log(localStorage.getItem('task0'));
+        const newTask = { text: taskText, completed: false };
+        tasks.push(newTask);
         addTaskToDOM(taskText);
-        console.log(localStorage.getItem('task0'));
-        //updateLocalStorage();
-        console.log(localStorage.getItem('task0'));
+        updateLocalStorage();
         userInput.value = '';
     }
 });
 
 clearBtn.addEventListener('click', () => {
     taskList.innerHTML = '';
-    localStorage.clear();
+    tasks = [];
+    localStorage.removeItem('tasks');
     emptyTaskListText.style.display = 'block';
 });
 

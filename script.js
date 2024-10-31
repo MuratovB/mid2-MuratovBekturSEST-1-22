@@ -51,20 +51,26 @@ function updateLocalStorage() {
 
 addBtn.addEventListener('click', () => {
     const taskText = userInput.value.trim();
-    if (taskText) {
+    if (taskText && taskText.length <= 64) {
         const newTask = { text: taskText, completed: false };
         tasks.push(newTask);
         addTaskToDOM(taskText);
         updateLocalStorage();
         userInput.value = '';
+    } else if (taskText === ''){
+        alert('Input must not be empty...');
+    } else {
+        alert('Input must be less then 64 symbols in total length...')
     }
 });
 
 clearBtn.addEventListener('click', () => {
-    taskList.innerHTML = '';
-    tasks = [];
-    localStorage.removeItem('tasks');
-    emptyTaskListText.style.display = 'block';
+    if (confirm('Are you sure you want to clear all tasks?')) {
+        taskList.innerHTML = '';
+        tasks = [];
+        localStorage.removeItem('tasks');
+        emptyTaskListText.style.display = 'block';
+    }
 });
 
 loadTasks();
